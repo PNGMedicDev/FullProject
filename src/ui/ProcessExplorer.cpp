@@ -11,7 +11,7 @@ namespace UI {
 
 ProcessExplorer::ProcessExplorer()
     : m_selectedProcessIndex(-1)
-    , m_refreshInterval(1.0f)
+    , m_refreshInterval(3.0f)  // Increase to 3 seconds for better performance
     , m_timeSinceRefresh(0.0f)
     , m_sortColumn(0)
     , m_sortAscending(true)

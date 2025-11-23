@@ -7,11 +7,11 @@ namespace DiagIDE {
 namespace UI {
 
 DiagnosticsDashboard::DiagnosticsDashboard()
-    : m_systemMetrics(Core::SystemMetrics::Create())
+    : m_systemMetrics(nullptr)  // Defer creation until initialization
     , m_timeWindow(60.0f)
     , m_maxHistorySize(300)
     , m_historyIndex(0)
-    , m_updateInterval(0.5f)
+    , m_updateInterval(1.0f)  // Increase to 1 second for better performance
     , m_timeSinceUpdate(0.0f)
 {
     m_cpuHistory.resize(m_maxHistorySize, 0.0f);
@@ -26,7 +26,10 @@ DiagnosticsDashboard::~DiagnosticsDashboard() = default;
 
 bool DiagnosticsDashboard::Initialize() {
     ImPlot::CreateContext();
-    UpdateMetrics();
+    m_systemMetrics = Core::SystemMetrics::Create();  // Create on initialization
+    if (m_systemMetrics) {
+        UpdateMetrics();
+    }
     return true;
 }
 
@@ -90,8 +93,10 @@ void DiagnosticsDashboard::RenderCpuGraph() {
         ImPlot::EndPlot();
     }
 
-    auto cpuMetrics = m_systemMetrics->GetCPUMetrics();
-    ImGui::Text("Current CPU: %.1f%% (Cores: %u)", cpuMetrics.totalUsage, cpuMetrics.coreCount);
+    if (m_systemMetrics) {
+        auto cpuMetrics = m_systemMetrics->GetCPUMetrics();
+        ImGui::Text("Current CPU: %.1f%% (Cores: %u)", cpuMetrics.totalUsage, cpuMetrics.coreCount);
+    }
 }
 
 void DiagnosticsDashboard::RenderMemoryGraph() {
@@ -105,10 +110,12 @@ void DiagnosticsDashboard::RenderMemoryGraph() {
         ImPlot::EndPlot();
     }
 
-    auto memMetrics = m_systemMetrics->GetMemoryMetrics();
-    double totalGB = memMetrics.totalPhysical / (1024.0 * 1024.0 * 1024.0);
-    double usedGB = memMetrics.usedPhysical / (1024.0 * 1024.0 * 1024.0);
-    ImGui::Text("Memory: %.2f / %.2f GB (%.1f%%)", usedGB, totalGB, memMetrics.usagePercent);
+    if (m_systemMetrics) {
+        auto memMetrics = m_systemMetrics->GetMemoryMetrics();
+        double totalGB = memMetrics.totalPhysical / (1024.0 * 1024.0 * 1024.0);
+        double usedGB = memMetrics.usedPhysical / (1024.0 * 1024.0 * 1024.0);
+        ImGui::Text("Memory: %.2f / %.2f GB (%.1f%%)", usedGB, totalGB, memMetrics.usagePercent);
+    }
 }
 
 void DiagnosticsDashboard::RenderDiskIOGraph() {
@@ -122,10 +129,12 @@ void DiagnosticsDashboard::RenderDiskIOGraph() {
         ImPlot::EndPlot();
     }
 
-    auto diskMetrics = m_systemMetrics->GetDiskIOMetrics();
-    double readMB = diskMetrics.readBytesPerSec / (1024.0 * 1024.0);
-    double writeMB = diskMetrics.writeBytesPerSec / (1024.0 * 1024.0);
-    ImGui::Text("Disk I/O - Read: %.2f MB/s, Write: %.2f MB/s", readMB, writeMB);
+    if (m_systemMetrics) {
+        auto diskMetrics = m_systemMetrics->GetDiskIOMetrics();
+        double readMB = diskMetrics.readBytesPerSec / (1024.0 * 1024.0);
+        double writeMB = diskMetrics.writeBytesPerSec / (1024.0 * 1024.0);
+        ImGui::Text("Disk I/O - Read: %.2f MB/s, Write: %.2f MB/s", readMB, writeMB);
+    }
 }
 
 void DiagnosticsDashboard::RenderNetworkGraph() {
@@ -139,13 +148,19 @@ void DiagnosticsDashboard::RenderNetworkGraph() {
         ImPlot::EndPlot();
     }
 
-    auto netMetrics = m_systemMetrics->GetNetworkMetrics();
-    double sentKB = netMetrics.bytesSentPerSec / 1024.0;
-    double recvKB = netMetrics.bytesRecvPerSec / 1024.0;
-    ImGui::Text("Network - Sent: %.2f KB/s, Received: %.2f KB/s", sentKB, recvKB);
+    if (m_systemMetrics) {
+        auto netMetrics = m_systemMetrics->GetNetworkMetrics();
+        double sentKB = netMetrics.bytesSentPerSec / 1024.0;
+        double recvKB = netMetrics.bytesRecvPerSec / 1024.0;
+        ImGui::Text("Network - Sent: %.2f KB/s, Received: %.2f KB/s", sentKB, recvKB);
+    }
 }
 
 void DiagnosticsDashboard::UpdateMetrics() {
+    if (!m_systemMetrics) {
+        return;  // Not initialized yet
+    }
+
     m_systemMetrics->Update();
 
     auto cpuMetrics = m_systemMetrics->GetCPUMetrics();

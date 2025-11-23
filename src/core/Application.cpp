@@ -74,18 +74,25 @@ bool Application::Initialize() {
     m_auditLogger = std::make_unique<AuditLogger>("diagnostic_ide.audit.log");
     m_auditLogger->Log(AuditLevel::Info, "Application", "Diagnostic IDE started");
 
-    // Register default panels
-    RegisterPanel(std::make_shared<UI::ProcessExplorer>());
-    RegisterPanel(std::make_shared<UI::MemoryInspector>());
-    RegisterPanel(std::make_shared<UI::DiagnosticsDashboard>());
-    RegisterPanel(std::make_shared<UI::AuditLogViewer>());
+    // Register default panels (start hidden for better performance)
+    auto processExplorer = std::make_shared<UI::ProcessExplorer>();
+    processExplorer->SetVisible(false);  // Start hidden
+    RegisterPanel(processExplorer);
 
-    // Initialize all panels
-    for (auto& panel : m_panels) {
-        if (!panel->Initialize()) {
-            std::cerr << "Failed to initialize panel: " << panel->GetName() << std::endl;
-        }
-    }
+    auto memoryInspector = std::make_shared<UI::MemoryInspector>();
+    memoryInspector->SetVisible(false);  // Start hidden
+    RegisterPanel(memoryInspector);
+
+    auto diagnosticsDashboard = std::make_shared<UI::DiagnosticsDashboard>();
+    diagnosticsDashboard->SetVisible(false);  // Start hidden
+    RegisterPanel(diagnosticsDashboard);
+
+    auto auditLogViewer = std::make_shared<UI::AuditLogViewer>();
+    auditLogViewer->SetVisible(false);  // Start hidden
+    RegisterPanel(auditLogViewer);
+
+    // Panels will lazy-initialize when first opened for better startup performance
+    // No initialization needed here
 
     // Try to load saved layout
     LoadLayout("layout.ini");
@@ -323,6 +330,17 @@ void Application::RenderMainMenuBar() {
 void Application::RenderPanels() {
     for (auto& panel : m_panels) {
         if (panel->IsVisible()) {
+            // Lazy initialization: only initialize panel when first opened
+            if (!panel->IsInitialized()) {
+                if (panel->Initialize()) {
+                    panel->SetInitialized(true);
+                } else {
+                    std::cerr << "Failed to initialize panel: " << panel->GetName() << std::endl;
+                    panel->SetVisible(false);  // Hide panel if initialization fails
+                    continue;
+                }
+            }
+
             panel->Render();
         }
     }

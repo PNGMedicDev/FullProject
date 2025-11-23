@@ -23,8 +23,13 @@ public:
     virtual bool IsVisible() const { return m_visible; }
     virtual void SetVisible(bool visible) { m_visible = visible; }
 
+    // Initialization state
+    bool IsInitialized() const { return m_initialized; }
+    void SetInitialized(bool initialized) { m_initialized = initialized; }
+
 protected:
     bool m_visible = true;
+    bool m_initialized = false;
 };
 
 } // namespace UI
