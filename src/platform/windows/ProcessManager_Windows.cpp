@@ -6,6 +6,7 @@
 #include <psapi.h>
 #include <sstream>
 #include <set>
+#include <map>
 
 #pragma comment(lib, "psapi.lib")
 
