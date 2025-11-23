@@ -1,0 +1,39 @@
+# Build directories
+build/
+cmake-build-*/
+
+# IDE specific
+.vscode/.cache
+.vscode/ipch
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+Makefile
+
+# Runtime generated files
+diagnostic_ide.audit.log
+layout.ini
+*.bin
+*.dump
+
+# OS specific
+.DS_Store
+Thumbs.db
