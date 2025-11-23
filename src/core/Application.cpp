@@ -5,6 +5,7 @@
 #include "ui/MemoryInspector.h"
 #include "ui/DiagnosticsDashboard.h"
 #include "ui/AuditLogViewer.h"
+#include "ui/ImGuiTheme.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -179,8 +180,8 @@ void Application::SetupImGui() {
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     #endif
 
-    // Setup style
-    ImGui::StyleColorsDark();
+    // Setup custom theme (light mode by default, use false for light, true for dark)
+    UI::SetupImGuiTheme(false, 1.0f);  // Change first parameter to true for dark mode
 
     // When viewports are enabled we tweak WindowRounding/WindowBg
     #ifdef IMGUI_HAS_VIEWPORT
@@ -267,24 +268,39 @@ void Application::RenderFrame() {
 void Application::RenderMainMenuBar() {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Save Layout")) {
+            if (ImGui::MenuItem("Save Layout", "Ctrl+S")) {
                 SaveLayout("layout.ini");
             }
-            if (ImGui::MenuItem("Load Layout")) {
+            if (ImGui::MenuItem("Load Layout", "Ctrl+O")) {
                 LoadLayout("layout.ini");
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Exit")) {
+            if (ImGui::MenuItem("Exit", "Alt+F4")) {
                 m_running = false;
             }
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("Panels")) {
+            ImGui::TextDisabled("Toggle Panel Visibility:");
+            ImGui::Separator();
+
             for (auto& panel : m_panels) {
                 bool visible = panel->IsVisible();
                 if (ImGui::MenuItem(panel->GetName(), nullptr, &visible)) {
                     panel->SetVisible(visible);
+                }
+            }
+
+            ImGui::Separator();
+            if (ImGui::MenuItem("Show All")) {
+                for (auto& panel : m_panels) {
+                    panel->SetVisible(true);
+                }
+            }
+            if (ImGui::MenuItem("Hide All")) {
+                for (auto& panel : m_panels) {
+                    panel->SetVisible(false);
                 }
             }
             ImGui::EndMenu();
@@ -294,6 +310,9 @@ void Application::RenderMainMenuBar() {
             if (ImGui::MenuItem("About")) {
                 // TODO: Show about dialog
             }
+            ImGui::Separator();
+            ImGui::TextDisabled("Diagnostic IDE v0.1.0");
+            ImGui::TextDisabled("Authorized Use Only");
             ImGui::EndMenu();
         }
 

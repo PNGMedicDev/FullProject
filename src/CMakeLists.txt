@@ -33,7 +33,7 @@ elseif(PLATFORM_LINUX)
 endif()
 
 # Main executable
-add_executable(DiagnosticIDE
+add_executable(DiagnosticIDE WIN32  # WIN32 hides console on Windows
     main.cpp
     ${CORE_SOURCES}
     ${UI_SOURCES}

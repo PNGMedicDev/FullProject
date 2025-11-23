@@ -22,7 +22,7 @@ ProcessExplorer::ProcessExplorer()
 ProcessExplorer::~ProcessExplorer() = default;
 
 bool ProcessExplorer::Initialize() {
-    RefreshProcessList();
+    // Defer initial process list load to first render to speed up startup
     return true;
 }
 
@@ -41,6 +41,11 @@ void ProcessExplorer::Update(float deltaTime) {
 
 void ProcessExplorer::Render() {
     ImGui::Begin("Process Explorer", &m_visible);
+
+    // Lazy load: refresh on first render if list is empty
+    if (m_processes.empty()) {
+        RefreshProcessList();
+    }
 
     // Control bar
     if (ImGui::Button("Refresh")) {
